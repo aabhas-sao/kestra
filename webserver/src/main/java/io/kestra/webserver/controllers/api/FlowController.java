@@ -425,7 +425,7 @@ public class FlowController {
             return HttpResponse.status(HttpStatus.NOT_FOUND);
         }
         Flow flowParsed = yamlParser.parse(flow, Flow.class);
-
+        flowService.checkValidSubflows(flowParsed);
         return HttpResponse.ok(update(flowParsed, existingFlow.get(), flow));
     }
 
@@ -588,6 +588,7 @@ public class FlowController {
                     validateConstraintViolationBuilder.namespace(flowParse.getNamespace());
 
                     modelValidator.validate(pluginDefaultService.injectDefaults(flowParse.withSource(flow)));
+                    flowService.checkValidSubflows(flowParse);
                 } catch (ConstraintViolationException e) {
                     validateConstraintViolationBuilder.constraints(e.getMessage());
                 } catch (RuntimeException re) {
