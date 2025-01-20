@@ -14,12 +14,10 @@ import io.kestra.core.repositories.FlowRepositoryInterface;
 import io.kestra.core.serializers.JacksonMapper;
 import io.kestra.core.serializers.YamlParser;
 import io.kestra.core.utils.ListUtils;
-import io.micronaut.core.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -169,9 +167,10 @@ public class FlowService {
             .map(io.kestra.plugin.core.flow.Subflow.class::cast)
             .toList();
 
+        Set<ConstraintViolation<?>> violations = new HashSet<>();
+
         subFlows.forEach(subflow -> {
             Optional<Flow> optional = findById(flow.getTenantId(), subflow.getNamespace(), subflow.getFlowId());
-            Set<ConstraintViolation<?>> violations = new HashSet<>();
 
             violations.add(ManualConstraintViolation.of(
                 "The subflow '" + subflow.getFlowId() + "' not found in namespace '" + subflow.getNamespace() + "'.",
@@ -180,11 +179,11 @@ public class FlowService {
                 "flow.tasks",
                 flow.getNamespace()
             ));
-
-            if (optional.isEmpty()) {
-                throw new ConstraintViolationException(violations);
-            }
         });
+
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
     }
 
     public record Relocation(String from, String to) {}
