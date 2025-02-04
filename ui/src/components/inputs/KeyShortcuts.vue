@@ -52,6 +52,10 @@
 
     const commands = [
         {
+            keys: ["⌘ Cmd/Ctrl", "p"],
+            description: "editor_shortcuts.command_palette",
+        },
+        {
             keys: ["⌘ Cmd/Ctrl", "s"],
             description: "editor_shortcuts.save_flow",
         },

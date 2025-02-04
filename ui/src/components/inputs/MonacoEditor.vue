@@ -630,6 +630,11 @@
                         command: "editor.action.triggerSuggest"
                     })
 
+                    monaco.editor.addKeybindingRule({
+                        keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
+                        command: "editor.action.quickCommand"
+                    })
+
                     this.editor = monaco.editor.create(this.$el, options);
 
                     if(!this.input){

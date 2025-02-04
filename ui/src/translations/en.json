@@ -1165,6 +1165,7 @@
     },
     "editor_shortcuts": {
       "label": "Keyboard shortcuts",
+      "command_palette": "Show command palette",
       "save_flow": "Save flow",
       "move_line": "Move line",
       "duplicate_cursor": "Duplicate cursor",
