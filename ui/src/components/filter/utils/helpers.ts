@@ -4,10 +4,13 @@ export const encodeParams = (route, filters, OPTIONS) => {
     const encode = (values, key) => {
         return values
             .map((v) => {
-                if (key === "childFilter" && v === "ALL") {
-                    return null;
-                }
-                return v;
+                if (key === "childFilter" && v === "ALL") return null;
+                else if(key === "q") return v;
+
+                const encoded = encodeURIComponent(v);
+                return key === "labels"
+                    ? encoded.replace(/%3A/g, ":")
+                    : encoded;
             })
             .filter((v) => v !== null);
     };
@@ -66,8 +69,8 @@ export const decodeParams = (route, query, include, OPTIONS) => {
                     : OPTIONS.find((o) => o.key === key)?.value.label || key;
 
             const decodedValue = Array.isArray(value)
-                ? value
-                : [value];
+                ? value.map(decodeURIComponent)
+                : [decodeURIComponent(value)];
 
             return {label, value: decodedValue};
         });
@@ -104,12 +107,14 @@ export const encodeSearchParams = (filters, OPTIONS) => {
         return values.reduce((acc, v) => {
             if (key === "childFilter" && v === "ALL") return acc;
 
+            const encoded = encodeURIComponent(v);
+
             if (key === "labels") {
                 const [labelKey, labelValue] = v.split(":");
-                acc[`filters[${key}][${operation}][${labelKey}]`] = labelValue;
+                acc[`filters[${key}][${operation}][${labelKey}]`] = encodeURIComponent(labelValue);
             } else {
                 const paramKey = `filters[${key}][${operation}]`;
-                acc[paramKey] = acc[paramKey] ? `${acc[paramKey]},${v}` : v;
+                acc[paramKey] = acc[paramKey] ? `${acc[paramKey]},${encoded}` : encoded;
             }
             return acc;
         }, {});
@@ -146,13 +151,13 @@ export const decodeSearchParams = (query, include, OPTIONS) => {
             const [, field, operation, subKey] = match;
 
             if (field === "labels" && subKey) {
-                return {label: field, value: `${subKey}:${value}`, operation};
+                return {label: field, value: `${subKey}:${decodeURIComponent(value)}`, operation};
             }
 
             const label = field === "q" ? "text" : OPTIONS.find(o => o.key === field)?.value.label || field;
             const comparator = OPTIONS.find(o => o.key === field)?.comparators?.find(c => c.value === operation) || {value: operation};
 
-            return {label, value: [value], operation: comparator.value};
+            return {label, value: [decodeURIComponent(value)], operation: comparator.value};
         })
         .filter(Boolean);
 
