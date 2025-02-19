@@ -20,9 +20,9 @@ import io.kestra.core.server.*;
 import io.kestra.core.services.LabelService;
 import io.kestra.core.services.LogService;
 import io.kestra.core.services.WorkerGroupService;
+import io.kestra.core.trace.TraceUtils;
 import io.kestra.core.trace.Tracer;
 import io.kestra.core.trace.TracerFactory;
-import io.kestra.core.trace.TraceUtils;
 import io.kestra.core.utils.*;
 import io.kestra.plugin.core.flow.WorkingDirectory;
 import io.micronaut.context.annotation.Parameter;
@@ -272,6 +272,7 @@ public class Worker implements Service, Runnable, AutoCloseable {
         this.clusterEventQueue.ifPresent(clusterEventQueueInterface -> this.receiveCancellations.addFirst(clusterEventQueueInterface.receive(this::clusterEventQueue)));
 
         setState(ServiceState.RUNNING);
+        log.info("Worker started with {} thread(s)", numThreads);
     }
 
     private void clusterEventQueue(Either<ClusterEvent, DeserializationException> either) {

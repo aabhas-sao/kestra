@@ -37,7 +37,7 @@
                     TODO: Find a way to have persistent tags for el-select.
                     https://github.com/kestra-io/kestra/issues/6256
                 -->
-                <Label :option="value" />
+                <Label :option="value" :prefix="ITEMS_PREFIX" />
             </template>
             <template #empty>
                 <span v-if="!isDatePickerShown">{{ emptyLabel }}</span>
@@ -122,6 +122,7 @@
         >
             <KestraIcon :tooltip="$t('search')" placement="bottom">
                 <el-button
+                    :disabled="!!props.searchCallback"
                     :icon="Magnify"
                     @click="triggerSearch"
                     class="rounded-0"
@@ -405,7 +406,7 @@
             );
             if (parentIndex !== -1) {
                 if (
-                    ["namespace", "log level"].includes(
+                    ["log level"].includes(
                         lastClickedParent.value.toLowerCase(),
                     )
                 ) {
@@ -591,6 +592,16 @@
     };
     const currentFilters = ref<CurrentItem[]>([]);
 
+    watch(
+        () => route.query,
+        (q: any) => {
+            // Handling change of label filters from direct click events
+            const routeFilters = decodeParams(route.name, q, props.include, OPTIONS);
+            currentFilters.value = routeFilters;
+        },
+        {immediate: true},
+    );
+
     const prefixFilter = ref("");
 
     const includedOptions = computed(() => {
@@ -663,14 +674,14 @@
     const triggerSearch = () => {
         if (props.searchCallback) return;
         else {
-            router.push({query: encodeParams(route.path, currentFilters.value, OPTIONS)});
+            router.push({query: encodeParams(route.name, currentFilters.value, OPTIONS)});
         }
     };
 
     // Include parameters from URL directly to filter
     onMounted(() => {
         if (props.decode) {
-            const decodedParams = decodeParams(route.path, route.query, props.include, OPTIONS);
+            const decodedParams = decodeParams(route.name, route.query, props.include, OPTIONS);
             currentFilters.value = decodedParams.map((item: any) => {
                 if (item.label === "absolute_date") {
                     return {
